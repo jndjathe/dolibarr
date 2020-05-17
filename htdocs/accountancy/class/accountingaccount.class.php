@@ -595,6 +595,40 @@ class AccountingAccount extends CommonObject
 		}
 	}
 
+	/**
+	 * Account deactivated child of parent $parent_id
+	 *
+	 * @param  int  $parent_id  Id
+	 * @return int              <0 if KO, >0 if OK
+	 */
+    public function account_desactivate_child($parent_id)
+    {
+        // phpcs:enable
+		$result = $this->checkUsage();
+
+		if ($result > 0) {
+			$this->db->begin();
+
+			$sql = "UPDATE " . MAIN_DB_PREFIX . "accounting_account ";
+			$sql .= "SET active = '0'";
+			$sql .= " WHERE account_parent = " . $this->db->escape($parent_id);
+
+			dol_syslog(get_class($this) . "::desactivate sql=" . $sql, LOG_DEBUG);
+			$result = $this->db->query($sql);
+
+			if ($result) {
+				$this->db->commit();
+				return 1;
+			} else {
+				$this->error = $this->db->lasterror();
+				$this->db->rollback();
+				return - 1;
+			}
+		} else {
+			return - 1;
+		}
+	}
+
     // phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
 	/**
 	 * Account activated
@@ -621,8 +655,34 @@ class AccountingAccount extends CommonObject
 			$this->db->rollback();
 			return - 1;
         }
-    }
+	}
+	
+	/**
+	 * Account activated child of parent $parent_id
+	 *
+	 * @param  int  $parent_id  Id
+	 * @return int              <0 if KO, >0 if OK
+	 */
+    public function account_activate_child($parent_id)
+    {
+        // phpcs:enable
+		$this->db->begin();
 
+		$sql = "UPDATE " . MAIN_DB_PREFIX . "accounting_account ";
+		$sql .= "SET active = '1'";
+		$sql .= " WHERE account_parent = " . $this->db->escape($parent_id);
+
+		dol_syslog(get_class($this) . "::activate sql=" . $sql, LOG_DEBUG);
+		$result = $this->db->query($sql);
+        if ($result) {
+			$this->db->commit();
+			return 1;
+        } else {
+			$this->error = $this->db->lasterror();
+			$this->db->rollback();
+			return - 1;
+        }
+    }
 
 	/**
 	 *  Retourne le libelle du statut d'un user (actif, inactif)

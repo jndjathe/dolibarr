@@ -157,7 +157,8 @@ if (empty($reshook))
 
     if ($action == 'disable') {
     	if ($accounting->fetch($id)) {
-    		$result = $accounting->account_desactivate($id);
+			$result = $accounting->account_desactivate($id);
+			$accounting->account_desactivate_child($id);
     	}
 
     	$action = 'update';
@@ -166,7 +167,8 @@ if (empty($reshook))
     	}
     } elseif ($action == 'enable') {
     	if ($accounting->fetch($id)) {
-    		$result = $accounting->account_activate($id);
+			$result = $accounting->account_activate($id);
+			$result = $accounting->account_activate_child($id);
     	}
     	$action = 'update';
     	if ($result < 0) {
@@ -238,7 +240,7 @@ if (strlen(trim($search_label)))			$sql .= natural_search("aa.label", $search_la
 if (strlen(trim($search_accountparent)) && $search_accountparent != '-1')	$sql .= natural_search("aa.account_parent", $search_accountparent, 2);
 if (strlen(trim($search_pcgtype)))			$sql .= natural_search("aa.pcg_type", $search_pcgtype);
 if (strlen(trim($search_pcgsubtype)))		$sql .= natural_search("aa.pcg_subtype", $search_pcgsubtype);
-$sql .= $db->order($sortfield, $sortorder);
+$sql .= $db->order('aa.active,' . $sortfield, 'DESC,' . $sortorder);
 
 // Count total nb of records
 $nbtotalofrecords = '';
